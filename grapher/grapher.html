@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>
+			dfield
+		</title>
+		<script src="parser.js"></script>
+		<script src="draw.js"></script>
+	</head>
+	<body>
+		<h1>
+			dfield
+		</h1>
+		<p>
+			TODO write a program that draws simple direction fields for ordinary
+			differential equations of the form y' = f(x,y).
+		</p>
+		<p>
+			The plan is to use recursive descent parsing to check that the
+			equation makes sense, and give useful feedback when it doesn't. Then 
+			plot the direction field and solutions when initial conditions are
+			given.
+		</p>
+		<form>
+			<table>
+				<tr>
+					<td>f(x) = </td>
+					<td colspan="3"> 
+						<input id="function" type="text" value="sin(x)" 
+							onchange="check_function()" style="width:99%;">
+					</td>
+					<td id="td_error" style="color: red">
+					<td>
+				</tr>
+				<tr>
+					<td>
+						Min x:
+					</td>
+					<td>
+						<input id="minx" size=5 value="-5" type="number"
+						required>
+					</td>
+					<td>
+						Max x:
+					</td>
+					<td> 
+						<input id="maxx" size=5 value="5" type="number" required>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Min y:
+					</td>
+					<td> 
+						<input id="miny" size=5 value="-5" type="number"
+						required>
+					</td>
+					<td>
+						Max y:
+					</td>
+					<td> 
+						<input id="maxy" size=5 value="5" type="number" required> 
+					</td>
+				</tr>
+			</table>
+			<button id="btn_graph" type="button" onclick="initCanvas()">
+				Graph function
+			</button>
+		</form>
+		<br>
+		<br>
+		<canvas id="yAxisCanvas" width="20" height="700"></canvas>
+		&nbsp;
+		<canvas id="myCanvas" width="700" height="700" style="border: 1px solid #000000;">
+			<p>Your browser doesn't support canvas :'(</p>
+		</canvas>
+		<br>
+		<canvas id="corner" width="20" height="20"></canvas>
+		&nbsp;
+		<canvas id="xAxisCanvas" width="700" height="20"></canvas>
+
+		<p> The end </p>
+
+		<script type="text/javascript">
+			// Check that the function is valid?
+			// TODO this should be in parser.js
+			function check_function() {
+				let func_str = document.getElementById('function').value;
+				init_scanner(func_str);
+				get(next_token);
+				parse_expression();
+				if (error_message == '') {
+					document.getElementById("td_error").innerHTML = '';
+					document.getElementById("btn_graph").disabled = false;
+					// TODO replace functions and constants and power symbol
+					y_prime = str_to_func(func_str);
+				} else {
+					document.getElementById("td_error").innerHTML =
+						error_message;
+					document.getElementById("btn_graph").disabled = true;
+				}
+			}
+		</script>
+
+	</body>
+</html>
