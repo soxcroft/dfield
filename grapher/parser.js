@@ -1,6 +1,8 @@
 
 /* SCANNER */
 
+// TODO make constants and functions include case insensitive
+
 // Constants
 // TODO add constants Math.PI and Math.E
 CONSTANTS = ['E', 'PI', 'SQRT2', 'SQRT1_2', 'LN2', 'LN10', 'LOG2E', 'LOG10E'];
@@ -114,6 +116,8 @@ function process_function(token) {
 		token.type = TOKEN_TYPES["Y"];
 	} else if (FUNCTIONS.includes(token.lexeme)) {
 		token.type = TOKEN_TYPES["FUNC"];
+	} else if (CONSTANTS.includes(token.lexeme)) {
+		token.type = TOKEN_TYPES["NUM"];
 	} else {
 		ch = -1; // TODO check that this halts execution
 		token.type = TOKEN_TYPES["EOE"]; // or this
@@ -245,7 +249,7 @@ function parse_term() {
 }
 
 function parse_factor() {
-	// <id> [ "(" <expr> ")" ] | <num> | "(" <expr> ")"
+	// <id> [ "(" <expr> ")" ] | <variable> | <num> | "(" <expr> ")"
 	debug_start("<factor>");
 
 	if (next_token.type == TOKEN_TYPES["FUNC"]) {
@@ -265,7 +269,7 @@ function parse_factor() {
 		expect(TOKEN_TYPES["RPAR"]);
 	} else {
 		// TODO errorsssss
-		log_error(`Expected a factor at pos ${pos}`);
+		log_error(`Expected a factor but found ${get_token_str(next_token.type)} at pos ${pos}`);
 	}
 
 	debug_end("</factor>");
@@ -275,13 +279,13 @@ function str_to_func(expression) {
 	// TODO store the new RegExp so you don't keep computing it
 	// Converts a string to a function after it has been parsed
 	CONSTANTS.forEach(c => {
-		expression.replace(new RegExp(c, 'g'));
+		expression = expression.replace(new RegExp("\\b" + c + "\\b", "gi"), "Math." + c);
 	});
 	FUNCTIONS.forEach(f => {
-		expression.replace(new RegExp(f, 'g'));
+		expression = expression.replace(new RegExp("\\b" + f + "\\b", "gi"), "Math." + f);
 	});
-	expression.replace(/^/g, '**');
-	return eval("(x, y) => {" + expression + "}");
+	expression = expression.replace(/\^/g, "**");
+	return eval("(x,y) => {return " + expression + ";};");
 }
 
 function test_parser(str) {

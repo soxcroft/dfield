@@ -1,63 +1,144 @@
 
 // Drawing methods for eg axes and functions
 
+// TODO remove the global variables
+
+// say no to magic numbers
+const GRID_LINES = 20;
+const GRID_LINE_INTERVAL = 0.5; // grid lines will be some multiple of this apart
+const GRID_LINE_WIDTH = 1;
+const AXIS_WIDTH = 2;
+const ARROW_LENGTH = 10; // pixels
+const ARROW_WIDTH = 1
+const ARROW_HEAD_FRAC = 0.4;
+
 var canvas;
 var context;
-//var width = canvas.width, height = canvas.height;
+var xscale, xoffset, xstep;
+var yscale, yoffset, ystep;
 var minx, maxx, miny, maxy;
+
+var y_prime, x_prime;
 
 function initCanvas() {
 
-	console.log(document);
-
+	// set global variables
 	canvas = document.getElementById("myCanvas");
 	context = canvas.getContext('2d');
+	context.clearRect(0, 0, canvas.width, canvas.height);
 
-	// set global variables and draws the axes
-	minx = document.getElementById("minx").value;
-	maxx = document.getElementById("maxx").value;
-	xscale = canvas.width / (maxx - minx); // pixel/unit
+	minx = GRID_LINE_INTERVAL*Math.floor(Number(document.getElementById("minx").value)/GRID_LINE_INTERVAL);
+	maxx = GRID_LINE_INTERVAL*Math.ceil(Number(document.getElementById("maxx").value)/GRID_LINE_INTERVAL);
+	xscale = canvas.width / (maxx - minx); // pixels/unit
+	xoffset = -xscale*minx; // we need to add this to x coords to show on canvas
+	xstep = GRID_LINE_INTERVAL*Math.ceil((maxx - minx)/(GRID_LINES*GRID_LINE_INTERVAL));
 
-	// draw x axis and vertical grid lines
+	miny = GRID_LINE_INTERVAL*Math.floor(Number(document.getElementById("miny").value)/GRID_LINE_INTERVAL);
+	maxy = GRID_LINE_INTERVAL*Math.ceil(Number(document.getElementById("maxy").value)/GRID_LINE_INTERVAL);
+	yscale = canvas.width / (maxy - miny); // pixels/unit
+	yoffset = canvas.height + yscale*miny; // subtract y coord from this to show on canvas
+	ystep = GRID_LINE_INTERVAL*Math.ceil((maxy - miny)/(20*GRID_LINE_INTERVAL));
+
+	// initialize x axis canvas
 	var xAxis = document.getElementById("xAxisCanvas");
-	var xContext = xAxis.getContext('2d');
-	xContext.clearRect(0, 0, xAxis.width, xAxis.height);
-	xContext.strokeSyle = 'black';
-	xContext.lineWidth = 1;
-	xContext.font = '36px arial';
+	var xAxisContext = xAxis.getContext('2d');
+	xAxisContext.clearRect(0, 0, xAxis.width, xAxis.height);
+	xAxisContext.strokeSyle = 'black';
+	xAxisContext.lineWidth = 1;
 
-	// lets try x axis first
-	context.strokeSyle = "rgba(255, 255, 255, 1)";
+	// draw the vertical grid lines and y axis labels
+	context.strokeStyle = "lightgrey";
+	context.lineWidth = GRID_LINE_WIDTH;
 	context.beginPath();
-	var x0 = - xscale*minx; // we need to add this to x coords to move it onto
-	//var xstep = Math.ceil((maxx - minx)/20);
-	var xstep = Math.ceil(canvas.width / 20);
-	var x = minx;
-	while (x >= minx && x < maxx) {
-		break;
-		console.log(x);
-		context.moveTo(x*xscale + x0, 0);
-		context.lineTo(x*xscale + x0, canvas.height);
-		x += xstep; // TODO can probs get rid of this variable
+	var x = minx + xstep;
+	while (x > minx && x < maxx) {
+		context.moveTo(x*xscale + xoffset, 0);
+		context.lineTo(x*xscale + xoffset, canvas.height);
+		xAxisContext.fillText(x, x*xscale + xoffset, xAxis.height/2);
+		x = x + xstep;
 	}
 	context.stroke();
 
-	console.log(x0);
-	console.log(xstep);
-	console.log(minx);
-	console.log(maxx);
-	
-
-	// y stuff
-	miny = document.getElementById("miny").value;
-	maxy = document.getElementById("maxy").value;
-	yscale = canvas.height / (maxy - miny);
+	// initialize y axis canvas
 	var yAxis = document.getElementById("yAxisCanvas");
-	var yContext = yAxis.getContext('2d');
+	var yAxisContext = yAxis.getContext('2d');
+	yAxisContext.clearRect(0, 0, yAxis.width, yAxis.height);
+	yAxisContext.strokeSyle = 'black';
+	yAxisContext.lineWidth = 1;
+
+	// draw the horizontal grid lines and y axis labels
+	context.strokeStyle = "lightgrey";
+	context.beginPath();
+	var y = miny + ystep;
+	while (y > miny && y < maxy) {
+		context.moveTo(0, yoffset - y*yscale);
+		context.lineTo(canvas.width, yoffset - y*yscale);
+		yAxisContext.fillText(y, 0, yoffset - y*yscale);
+		y = y + ystep;
+	}
+	context.stroke();
+
+	// draw the x and y axis
+	context.strokeStyle = "black";
+	context.lineWidth = AXIS_WIDTH;
+	context.beginPath();
+	context.moveTo(xoffset, 0);
+	context.lineTo(xoffset, canvas.height);
+	context.moveTo(0, yoffset);
+	context.lineTo(canvas.width, yoffset);
+	context.stroke();
+
+	drawArrows(false); // TODO don't call in here
 }
 
-function drawDirectionField() {
-	// TODO draw the direction field
+function drawArrows(variableLengthArrows) {
+	// Draws direction fields or phase planes
+	// Assumes initCanvas has been called and global variables are set
+	// TODO probably shouldnt tho
+
+	check_function(); // XXX remove
+	if (!variableLengthArrows) {
+		var x_prime = (x,y) => { return 1; };
+	}
+
+	context.lineWidth = ARROW_WIDTH;
+	context.strokeStyle = "black";
+	context.beginPath();
+
+	var x = minx + xstep/2;
+	while (x > minx && x < maxx) {
+		var y = miny + ystep/2;
+		while (y > miny && y < maxy) {
+			// draw the arrow inside a cell
+			// TODO change from y_prime to something else
+			dx = x_prime(x,y);
+			dy = y_prime(x,y);
+			if (!variableLengthArrows) {
+				curLength = Math.sqrt(dx**2 + dy**2);
+				dx = dx*ARROW_LENGTH/curLength;
+				dy = dy*ARROW_LENGTH/curLength;
+			} // TODO else
+			context.moveTo(xoffset + x*xscale - dx/2, yoffset - y*yscale + dy/2);
+			context.lineTo(xoffset + x*xscale + dx/2, yoffset - y*yscale - dy/2);
+
+			// draw arrow heads
+			let arrowdx = ARROW_HEAD_FRAC*dx;
+			let arrowdy = ARROW_HEAD_FRAC*dy;
+			context.moveTo(
+				xoffset + x*xscale + dx/2 - arrowdx + arrowdy/2,
+				yoffset - y*yscale - dy/2 + arrowdy + arrowdx/2);
+			context.lineTo(
+				xoffset + x*xscale + dx/2,
+				yoffset - y*yscale - dy/2);
+			context.lineTo(
+				xoffset + x*xscale + dx/2 - arrowdx - arrowdy/2,
+				yoffset - y*yscale - dy/2 + arrowdy - arrowdx/2);
+
+			y += ystep;
+		}
+		x += xstep;
+	}
+	context.stroke();
 }
 
 function plotDifferentialEquation(points) {
