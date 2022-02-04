@@ -12,24 +12,45 @@
 			dfield
 		</h1>
 		<p>
-			TODO write a program that draws simple direction fields for ordinary
+			TODO write a program that draws direction fields for simple ordinary
 			differential equations of the form y' = f(x,y).
 		</p>
 		<p>
 			The plan is to use recursive descent parsing to check that the
-			equation makes sense, and give useful feedback when it doesn't. Then 
+			equations make sense, and give useful feedback when they don't. Then 
 			plot the direction field and solutions when initial conditions are
 			given.
 		</p>
 		<form>
 			<table>
 				<tr>
-					<td>f(x) = </td>
-					<td colspan="3"> 
-						<input id="function" type="text" value="sin(x)" 
-							onchange="check_function()" style="width:99%;">
+					<td>
+						dfield:
 					</td>
-					<td id="td_error" style="color: red">
+					<td colspan="3">
+						<input id="display_dfield" type="checkbox" checked=true
+							   onchange="updateForm()">
+					</td>
+				<tr>
+					<td>y' = </td>
+					<td colspan="3"> 
+						<input id="inp_y_prime" type="text" value="sin(x)" 
+							onchange="check_function( document.getElementById('inp_y_prime').value,'td_y_error')" 
+							style="width:99%;">
+					</td>
+					<td id="td_y_error" style="color: red">
+					<td>
+				</tr>
+				<tr id="tr_x_prime" style="display:none;">
+					<td>x' = </td>
+					<td colspan="3"> 
+						<input id="inp_x_prime" type="text" value="cos(y)" 
+							onchange="check_function(
+								document.getElementById('inp_x_prime').value,
+								'td_x_error')"
+							style="width:99%;">
+					</td>
+					<td id="td_x_error" style="color: red">
 					<td>
 				</tr>
 				<tr>
@@ -37,14 +58,14 @@
 						Min x:
 					</td>
 					<td>
-						<input id="minx" size=5 value="-5" type="number"
+						<input id="minx" size=5 value=-5 type="number"
 						required>
 					</td>
 					<td>
 						Max x:
 					</td>
 					<td> 
-						<input id="maxx" size=5 value="5" type="number" required>
+						<input id="maxx" size=5 value=5 type="number" required>
 					</td>
 				</tr>
 				<tr>
@@ -52,19 +73,24 @@
 						Min y:
 					</td>
 					<td> 
-						<input id="miny" size=5 value="-5" type="number"
+						<input id="miny" size=5 value=-5 type="number"
 						required>
 					</td>
 					<td>
 						Max y:
 					</td>
 					<td> 
-						<input id="maxy" size=5 value="5" type="number" required> 
+						<input id="maxy" size=5 value=5 type="number" required> 
 					</td>
 				</tr>
 			</table>
-			<button id="btn_graph" type="button" onclick="initCanvas()">
-				Graph function
+			<button id="btn_dfield" type="button" 
+				onclick="initCanvas();drawArrows(false);">
+				Draw direction field
+			</button>
+			<button id="btn_pplane" type="button" style="visibility:hidden;"
+				onclick="initCanvas();drawArrows(true);">
+				Draw phase plane todo
 			</button>
 		</form>
 		<br>
@@ -72,7 +98,7 @@
 		<canvas id="yAxisCanvas" width="20" height="700"></canvas>
 		&nbsp;
 		<canvas id="myCanvas" width="700" height="700" style="border: 1px solid #000000;">
-			<p>Your browser doesn't support canvas :'(</p>
+			<p>Your browser doesn't support canvases :'(</p>
 		</canvas>
 		<br>
 		<canvas id="corner" width="20" height="20"></canvas>
@@ -82,22 +108,40 @@
 		<p> The end </p>
 
 		<script type="text/javascript">
-			// Check that the function is valid?
-			// TODO this should be in parser.js
-			function check_function() {
-				let func_str = document.getElementById('function').value;
-				init_scanner(func_str);
-				get(next_token);
-				parse_expression();
-				if (error_message == '') {
-					document.getElementById("td_error").innerHTML = '';
-					document.getElementById("btn_graph").disabled = false;
-					// TODO replace functions and constants and power symbol
-					y_prime = str_to_func(func_str);
+			function check_function(funcStr, errorId) {
+				// Check that the function is valid TODO change name
+				let errorMsg = checkFunction(funcStr);
+				if (errorMsg == "") {
+					document.getElementById(errorId).innerHTML = "";
+					document.getElementById("btn_dfield").disabled = false;
+					document.getElementById("btn_pplane").disabled = false;
 				} else {
-					document.getElementById("td_error").innerHTML =
-						error_message;
-					document.getElementById("btn_graph").disabled = true;
+					document.getElementById(errorId).innerHTML = errorMsg;
+					document.getElementById("btn_dfield").disabled = true;
+					document.getElementById("btn_pplane").disabled = true;
+				}
+			}
+
+			function getFunctions() {
+				// returns struct containing functions
+				return {
+					"yPrime": str_to_func(
+						document.getElementById("inp_y_prime").value),
+					"xPrime": str_to_func(
+						document.getElementById("inp_x_prime").value)
+				}
+			}
+
+			function updateForm() {
+				// Hides or shows x' and draw dfield/pplane buttons
+				if (document.getElementById("display_dfield").checked) {
+					document.getElementById("tr_x_prime").style="display:none";
+					document.getElementById("btn_dfield").style="display:inline";
+					document.getElementById("btn_pplane").style="display:none";
+				} else {
+					document.getElementById("tr_x_prime").style="display:table-row";
+					document.getElementById("btn_pplane").style="display:inline";
+					document.getElementById("btn_dfield").style="display:none";
 				}
 			}
 		</script>

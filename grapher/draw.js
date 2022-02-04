@@ -9,8 +9,10 @@ const GRID_LINE_INTERVAL = 0.5; // grid lines will be some multiple of this apar
 const GRID_LINE_WIDTH = 1;
 const AXIS_WIDTH = 2;
 const ARROW_LENGTH = 10; // pixels
+const MIN_ARROW_LENGTH = 0.5*ARROW_LENGTH;
+const MAX_ARROW_LENGTH = 2*ARROW_LENGTH;
 const ARROW_WIDTH = 1
-const ARROW_HEAD_FRAC = 0.4;
+const ARROW_HEAD_FRAC = 0.5;
 
 var canvas;
 var context;
@@ -87,8 +89,6 @@ function initCanvas() {
 	context.moveTo(0, yoffset);
 	context.lineTo(canvas.width, yoffset);
 	context.stroke();
-
-	drawArrows(false); // TODO don't call in here
 }
 
 function drawArrows(variableLengthArrows) {
@@ -96,9 +96,12 @@ function drawArrows(variableLengthArrows) {
 	// Assumes initCanvas has been called and global variables are set
 	// TODO probably shouldnt tho
 
-	check_function(); // XXX remove
+	let funcs = getFunctions();
+	let x_prime = funcs["xPrime"];
+	let y_prime = funcs["yPrime"];
+
 	if (!variableLengthArrows) {
-		var x_prime = (x,y) => { return 1; };
+		x_prime = (x,y) => { return 1; };
 	}
 
 	context.lineWidth = ARROW_WIDTH;
@@ -111,13 +114,31 @@ function drawArrows(variableLengthArrows) {
 		while (y > miny && y < maxy) {
 			// draw the arrow inside a cell
 			// TODO change from y_prime to something else
-			dx = x_prime(x,y);
-			dy = y_prime(x,y);
+			let dx = x_prime(x,y);
+			let dy = y_prime(x,y);
+			let curLength = Math.sqrt(dx**2 + dy**2);
+
 			if (!variableLengthArrows) {
+				// scale arrow for direction field
+				dx *= ARROW_LENGTH/curLength;
+				dy *= ARROW_LENGTH/curLength;
+			} else {
+				// scale arrow for phase plane
+				dx *= ARROW_LENGTH;
+				dy *= ARROW_LENGTH;
+
+				// resize if it is too big or too small
 				curLength = Math.sqrt(dx**2 + dy**2);
-				dx = dx*ARROW_LENGTH/curLength;
-				dy = dy*ARROW_LENGTH/curLength;
-			} // TODO else
+				if (curLength > MAX_ARROW_LENGTH) {
+					dx *= MAX_ARROW_LENGTH/curLength;
+					dy *= MAX_ARROW_LENGTH/curLength;
+				} else if (curLength < MIN_ARROW_LENGTH) {
+					dx *= MIN_ARROW_LENGTH/curLength;
+					dy *= MIN_ARROW_LENGTH/curLength;
+				}
+			}
+
+			// draw line for arrow
 			context.moveTo(xoffset + x*xscale - dx/2, yoffset - y*yscale + dy/2);
 			context.lineTo(xoffset + x*xscale + dx/2, yoffset - y*yscale - dy/2);
 

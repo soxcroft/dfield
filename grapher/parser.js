@@ -3,10 +3,9 @@
 
 // TODO make constants and functions include case insensitive
 
-// Constants
-// TODO add constants Math.PI and Math.E
+// Math constants
 CONSTANTS = ['E', 'PI', 'SQRT2', 'SQRT1_2', 'LN2', 'LN10', 'LOG2E', 'LOG10E'];
-// TODO these are Math functions, if you add more, make different token types
+// Math functions
 FUNCTIONS = ['abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cbrt',
 	'cos', 'cosh', 'exp', 'log', 'log2', 'log10', 'sin', 'sinh', 'sqrt', 'tan',
 	'tanh'];
@@ -114,13 +113,13 @@ function process_function(token) {
 		token.type = TOKEN_TYPES["X"];
 	} else if (token.lexeme == 'y') {
 		token.type = TOKEN_TYPES["Y"];
-	} else if (FUNCTIONS.includes(token.lexeme)) {
+	} else if (FUNCTIONS.includes(token.lexeme.toLowerCase())) {
 		token.type = TOKEN_TYPES["FUNC"];
-	} else if (CONSTANTS.includes(token.lexeme)) {
+	} else if (CONSTANTS.includes(token.lexeme.toLowerCase())) {
 		token.type = TOKEN_TYPES["NUM"];
 	} else {
-		ch = -1; // TODO check that this halts execution
-		token.type = TOKEN_TYPES["EOE"]; // or this
+		ch = -1;
+		token.type = TOKEN_TYPES["EOE"];
 		log_error(`Invalid function/variable name at pos ${start}`);
 	}
 }
@@ -294,6 +293,15 @@ function test_parser(str) {
 	get(next_token);
 	parse_expression();
 	console.log();
+}
+
+function checkFunction(funcStr) {
+	// initializes scanner, parses expression and returns error message or
+	// empty string if function is valid
+	init_scanner(funcStr);
+	get(next_token);
+	parse_expression();
+	return error_message;
 }
 
 /* TODO now I need a method probably similar to test_parser which inits scanner
