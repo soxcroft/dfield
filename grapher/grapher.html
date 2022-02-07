@@ -4,6 +4,7 @@
 		<title>
 			dfield
 		</title>
+		<script src="algorithms.js">//TODO type module?</script>
 		<script src="parser.js"></script>
 		<script src="draw.js"></script>
 	</head>
@@ -44,7 +45,7 @@
 				<tr id="tr_x_prime" style="display:none;">
 					<td>x' = </td>
 					<td colspan="3"> 
-						<input id="inp_x_prime" type="text" value="cos(y)" 
+						<input id="inp_x_prime" type="text" value="1" 
 							onchange="check_function(
 								document.getElementById('inp_x_prime').value,
 								'td_x_error')"
@@ -83,6 +84,35 @@
 						<input id="maxy" size=5 value=5 type="number" required> 
 					</td>
 				</tr>
+
+				<tr> 
+					<td>
+						Alg:
+					</td>
+					<td>
+						<select id="select-algorithm">
+							<option value="eulersMethod">
+								Euler's method
+							</option>
+							<option value="modifiedEulersMethod">
+								Modified Euler's method
+							</option>
+							<option value="rungeKuttaMethod">
+								Runge-Kutta method
+							</option>
+							<option value="adamsBashforthMoultonMethod">
+								Adams-Bashforth-Moulton
+							</option>
+						</select>
+					</td>
+					<td>
+						Step size:
+					</td>
+					<td>
+						<input id="inp-stepsize" value=1 type="number">
+					</td>
+				</tr>
+
 			</table>
 			<button id="btn_dfield" type="button" 
 				onclick="initCanvas();drawArrows(false);">
@@ -90,8 +120,9 @@
 			</button>
 			<button id="btn_pplane" type="button" style="visibility:hidden;"
 				onclick="initCanvas();drawArrows(true);">
-				Draw phase plane todo
+				Draw phase plane
 			</button>
+
 		</form>
 		<br>
 		<br>
@@ -108,6 +139,44 @@
 		<p> The end </p>
 
 		<script type="text/javascript">
+
+			//TODO canvas already global
+			var elem = document.getElementById("myCanvas");
+			// event listener for 'click' events
+			elem.addEventListener('click', function(event) {
+
+				algsDict = {
+					"eulersMethod": eulersMethod,
+					"modifiedEulersMethod": modifiedEulersMethod,
+					"rungeKuttaMethod": rungeKuttaMethod,
+					"adamsBashforthMoultonMethod": adamsBashforthMoultonMethod
+				};
+
+				// get points
+				let cx = event.pageX - elem.offsetLeft - elem.clientLeft;
+				let cy = event.pageY - elem.offsetTop - elem.clientTop;
+
+				// get differential equations and stepsize
+				let yPrime = str_to_func(
+					document.getElementById("inp_y_prime").value);
+				let xPrime = str_to_func(
+					document.getElementById("inp_x_prime").value);
+				let stepsize =
+					Number(document.getElementById("inp-stepsize").value);
+
+				// get algorithm and plot solution to equations with given
+				// initial conditions
+				let f =
+					algsDict[document.getElementById("select-algorithm").value];
+
+				let	points =
+					f((cx-xoffset)/xscale,(-cy+yoffset)/yscale,xPrime,yPrime,stepsize);
+				plotPoints(points);
+				points =
+					f((cx-xoffset)/xscale,(-cy+yoffset)/yscale,xPrime,yPrime,-stepsize);
+				plotPoints(points)
+				}, false);
+
 			function check_function(funcStr, errorId) {
 				// Check that the function is valid TODO change name
 				let errorMsg = checkFunction(funcStr);
@@ -138,12 +207,14 @@
 					document.getElementById("tr_x_prime").style="display:none";
 					document.getElementById("btn_dfield").style="display:inline";
 					document.getElementById("btn_pplane").style="display:none";
+					document.getElementById("inp_x_prime").value = "1";
 				} else {
 					document.getElementById("tr_x_prime").style="display:table-row";
 					document.getElementById("btn_pplane").style="display:inline";
 					document.getElementById("btn_dfield").style="display:none";
 				}
 			}
+
 		</script>
 
 	</body>

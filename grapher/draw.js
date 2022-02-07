@@ -8,7 +8,7 @@ const GRID_LINES = 20;
 const GRID_LINE_INTERVAL = 0.5; // grid lines will be some multiple of this apart
 const GRID_LINE_WIDTH = 1;
 const AXIS_WIDTH = 2;
-const ARROW_LENGTH = 10; // pixels
+const ARROW_LENGTH = 10; // pixels TODO don't make this constant, very limiting
 const MIN_ARROW_LENGTH = 0.5*ARROW_LENGTH;
 const MAX_ARROW_LENGTH = 2*ARROW_LENGTH;
 const ARROW_WIDTH = 1
@@ -96,9 +96,9 @@ function drawArrows(variableLengthArrows) {
 	// Assumes initCanvas has been called and global variables are set
 	// TODO probably shouldnt tho
 
-	let funcs = getFunctions();
-	let x_prime = funcs["xPrime"];
-	let y_prime = funcs["yPrime"];
+	var funcs = getFunctions();
+	var x_prime = funcs["xPrime"];
+	var y_prime = funcs["yPrime"];
 
 	if (!variableLengthArrows) {
 		x_prime = (x,y) => { return 1; };
@@ -162,7 +162,16 @@ function drawArrows(variableLengthArrows) {
 	context.stroke();
 }
 
-function plotDifferentialEquation(points) {
-	// TODO plot the points. They should be computed by a seperate JS file 
-	// with the algorithms
+function plotPoints(points) {
+	// Plots the points in the n by 2 array
+	context.strokeStyle = "blue";
+	context.beginPath();
+	points.forEach((p, i) => {
+		if (i == 0) {
+			context.moveTo(xoffset + xscale*p[0], yoffset - yscale*p[1]);
+		} else {
+			context.lineTo(xoffset + xscale*p[0], yoffset - yscale*p[1]);
+		}
+	});
+	context.stroke();
 }
