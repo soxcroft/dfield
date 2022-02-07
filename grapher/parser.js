@@ -28,7 +28,7 @@ class Token {
 }
 var next_token = new Token(); // lookahead token
 
-// Global error message, initialized in init_scanner, written to by error message
+// Global error message, initialized in init_scanner, written to by log_error
 var error_message;
 
 function log_error(msg) {
@@ -44,11 +44,12 @@ function is_alpha(ch) {
 }
 
 function is_numeric(ch) {
-	// Check if a character is a number, also assumes ch is a char
+	// Check if a character is a digit, also assumes ch is a char
 	return /[0-9]/.test(ch);
 }
 
 function init_scanner(expression_string) {
+	// Initializes the scanner
 	pos = 0;
 	expression = expression_string;
 	error_message = '';
@@ -56,6 +57,7 @@ function init_scanner(expression_string) {
 }
 
 function get(token) {
+	// get the next lexeme in the expression
 	
 	// skip white space
 	while (ch == ' ' || ch == '\n' || ch == '\t') {
@@ -66,7 +68,7 @@ function get(token) {
 
 		// is alpha
 		if (is_alpha(ch)) {
-			process_function(token);
+			process_string(token);
 		} else if (is_numeric(ch)) {
 			process_number(token);
 		} else if (ch == '(' || ch == '[') {
@@ -100,7 +102,8 @@ function get(token) {
 	}
 }
 
-function process_function(token) {
+function process_string(token) {
+	// Read next string and return the token type found
 	token.lexeme = ''; // reset
 	start = pos // for error messages
 
@@ -125,6 +128,7 @@ function process_function(token) {
 }
 
 function process_number(token) {
+	// Read number from the input. Allows decimals
 	token.lexeme = '';
 	var decimal = false;
 	while ((is_numeric(ch) && ch != -1) || (ch == '.' && !decimal)) {
@@ -138,6 +142,8 @@ function process_number(token) {
 }
 
 function next_char() {
+	// Set ch equal to the next character in the expression being read, and
+	// increment the position in the string
 	if (pos < expression.length) {
 		ch = expression[pos];
 		pos++;
@@ -148,13 +154,14 @@ function next_char() {
 }
 
 function get_token_str(type) {
+	// Converts a token type to its string representation, for error messages
 	return TOKEN_STRINGS[type];
 }
 
 // TEST
 
 function test_scanner(str) {
-
+	// Tokenizes str and prints each lexeme it reads on a new line
 	console.log(str);
 
 	init_scanner(str);
@@ -203,12 +210,22 @@ function debug_end(production) {
 // parsing stuff
 
 function expect(type) {
+	// 'Eats' token and gets the next one
 	if (next_token.type == type) {
 		get(next_token);
 	} else {
-		// TODO maybe abort somehow too
 		log_error(`Expected ${get_token_str(type)} but found ${get_token_str(next_token.type)} at pos ${pos}`);
 	}
+}
+
+function parse_function() {
+	// <expression> "end-of-expression"
+	debug_start("<function>");
+
+	parse_expression();
+	expect(TOKEN_TYPES["EOE"]);
+
+	debug_end("</function>");
 }
 
 function parse_expression() {
@@ -226,11 +243,9 @@ function parse_expression() {
 		get(next_token);
 		parse_term();
 	}
-
+	
 	debug_end("</expression>");
 }
-
-// TODO how to handle exponent?
 
 function parse_term() {
 	// <factor> {<mulop> <factor>}
@@ -258,7 +273,6 @@ function parse_factor() {
 		expect(TOKEN_TYPES["RPAR"]);
 	} else if (next_token.type == TOKEN_TYPES["X"] || next_token.type == 
 			TOKEN_TYPES["Y"]) {
-		// TODO probably change x and y type to var
 		get(next_token);
 	} else if (next_token.type == TOKEN_TYPES["NUM"]) {
 		get(next_token);
@@ -267,7 +281,6 @@ function parse_factor() {
 		parse_expression();
 		expect(TOKEN_TYPES["RPAR"]);
 	} else {
-		// TODO errorsssss
 		log_error(`Expected a factor but found ${get_token_str(next_token.type)} at pos ${pos}`);
 	}
 
@@ -288,7 +301,7 @@ function str_to_func(expression) {
 }
 
 function test_parser(str) {
-	// make sure debugging is enabled
+	// Make sure debugging is enabled
 	init_scanner(str);
 	get(next_token);
 	parse_expression();
@@ -296,23 +309,17 @@ function test_parser(str) {
 }
 
 function checkFunction(funcStr) {
-	// initializes scanner, parses expression and returns error message or
+	// Initializes scanner, parses expression and returns error message or
 	// empty string if function is valid
 	init_scanner(funcStr);
 	get(next_token);
-	parse_expression();
+	parse_function();
 	return error_message;
 }
 
-/* TODO now I need a method probably similar to test_parser which inits scanner
- * and checks the expression, setting an error message where necessary to
- * display and maybe a boolean so that the html knows if the expression is
- * valid?
- */
-
+/*
 // TEST
 
-/*
 test_scanner("5()sin+5");
 test_scanner("5 + 5 * sin(100^12) - x + y*12");
 
