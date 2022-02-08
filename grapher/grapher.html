@@ -4,9 +4,6 @@
 		<title>
 			dfield
 		</title>
-		<script src="algorithms.js">//TODO type module?</script>
-		<script src="parser.js"></script>
-		<script src="draw.js"></script>
 	</head>
 	<body>
 		<h1>
@@ -36,7 +33,7 @@
 					<td>y' = </td>
 					<td colspan="3"> 
 						<input id="inp_y_prime" type="text" value="sin(x)" 
-							onchange="check_function( document.getElementById('inp_y_prime').value,'td_y_error')" 
+							onchange="checkFunction( document.getElementById('inp_y_prime').value,'td_y_error')" 
 							style="width:99%;">
 					</td>
 					<td id="td_y_error" style="color: red">
@@ -46,7 +43,7 @@
 					<td>x' = </td>
 					<td colspan="3"> 
 						<input id="inp_x_prime" type="text" value="1" 
-							onchange="check_function(
+							onchange="checkFunction(
 								document.getElementById('inp_x_prime').value,
 								'td_x_error')"
 							style="width:99%;">
@@ -138,84 +135,10 @@
 
 		<p> The end </p>
 
-		<script type="text/javascript">
-
-			//TODO canvas already global
-			var elem = document.getElementById("myCanvas");
-			// event listener for 'click' events
-			elem.addEventListener('click', function(event) {
-
-				algsDict = {
-					"eulersMethod": eulersMethod,
-					"modifiedEulersMethod": modifiedEulersMethod,
-					"rungeKuttaMethod": rungeKuttaMethod,
-					"adamsBashforthMoultonMethod": adamsBashforthMoultonMethod
-				};
-
-				// get points
-				let cx = event.pageX - elem.offsetLeft - elem.clientLeft;
-				let cy = event.pageY - elem.offsetTop - elem.clientTop;
-
-				// get differential equations and stepsize
-				let yPrime = str_to_func(
-					document.getElementById("inp_y_prime").value);
-				let xPrime = str_to_func(
-					document.getElementById("inp_x_prime").value);
-				let stepsize =
-					Number(document.getElementById("inp-stepsize").value);
-
-				// get algorithm and plot solution to equations with given
-				// initial conditions
-				let f =
-					algsDict[document.getElementById("select-algorithm").value];
-
-				let	points =
-					f((cx-xoffset)/xscale,(-cy+yoffset)/yscale,xPrime,yPrime,stepsize);
-				plotPoints(points);
-				points =
-					f((cx-xoffset)/xscale,(-cy+yoffset)/yscale,xPrime,yPrime,-stepsize);
-				plotPoints(points)
-				}, false);
-
-			function check_function(funcStr, errorId) {
-				// Check that the function is valid TODO change name
-				let errorMsg = checkFunction(funcStr);
-				if (errorMsg == "") {
-					document.getElementById(errorId).innerHTML = "";
-					document.getElementById("btn_dfield").disabled = false;
-					document.getElementById("btn_pplane").disabled = false;
-				} else {
-					document.getElementById(errorId).innerHTML = errorMsg;
-					document.getElementById("btn_dfield").disabled = true;
-					document.getElementById("btn_pplane").disabled = true;
-				}
-			}
-
-			function getFunctions() {
-				// returns struct containing functions
-				return {
-					"yPrime": str_to_func(
-						document.getElementById("inp_y_prime").value),
-					"xPrime": str_to_func(
-						document.getElementById("inp_x_prime").value)
-				}
-			}
-
-			function updateForm() {
-				// Hides or shows x' and draw dfield/pplane buttons
-				if (document.getElementById("display_dfield").checked) {
-					document.getElementById("tr_x_prime").style="display:none";
-					document.getElementById("btn_dfield").style="display:inline";
-					document.getElementById("btn_pplane").style="display:none";
-					document.getElementById("inp_x_prime").value = "1";
-				} else {
-					document.getElementById("tr_x_prime").style="display:table-row";
-					document.getElementById("btn_pplane").style="display:inline";
-					document.getElementById("btn_dfield").style="display:none";
-				}
-			}
-
-		</script>
+		<script src="grapher.js"></script>
+		<script src="algorithms.js"></script>
+		<script src="parser.js"></script>
+		<script src="draw.js"></script>
 
 	</body>
 </html>

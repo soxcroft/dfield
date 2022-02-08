@@ -26,34 +26,34 @@ class Token {
 		var type, lexeme;
 	}
 }
-var next_token = new Token(); // lookahead token
+var nextToken = new Token(); // lookahead token
 
-// Global error message, initialized in init_scanner, written to by log_error
-var error_message;
+// Global error message, initialized in initScanner, written to by logError
+var errorMessage;
 
-function log_error(msg) {
+function logError(msg) {
 	// only write to error message if it is the empty string
-	if (error_message == '') {
-		error_message = msg;
+	if (errorMessage == '') {
+		errorMessage = msg;
 	}
 }
 
-function is_alpha(ch) {
+function isAlpha(ch) {
 	// Check if a character is in the alphabet, assumes ch is a char
 	return /[A-Za-z]/.test(ch);
 }
 
-function is_numeric(ch) {
+function isDigit(ch) {
 	// Check if a character is a digit, also assumes ch is a char
 	return /[0-9]/.test(ch);
 }
 
-function init_scanner(expression_string) {
+function initScanner(expressionString) {
 	// Initializes the scanner
 	pos = 0;
-	expression = expression_string;
-	error_message = '';
-	next_char();
+	expression = expressionString;
+	errorMessage = '';
+	nextChar();
 }
 
 function get(token) {
@@ -61,39 +61,39 @@ function get(token) {
 	
 	// skip white space
 	while (ch == ' ' || ch == '\n' || ch == '\t') {
-		next_char();
+		nextChar();
 	}
 
 	if (ch != -1) {
 
 		// is alpha
-		if (is_alpha(ch)) {
-			process_string(token);
-		} else if (is_numeric(ch)) {
-			process_number(token);
+		if (isAlpha(ch)) {
+			processString(token);
+		} else if (isDigit(ch)) {
+			processNumber(token);
 		} else if (ch == '(' || ch == '[') {
 			token.type = TOKEN_TYPES["LPAR"];
-			next_char();
+			nextChar();
 		} else if (ch == ')' || ch == ']') {
 			token.type = TOKEN_TYPES['RPAR'];
-			next_char();
+			nextChar();
 		} else if (ch == '+') {
 			token.type = TOKEN_TYPES['ADD'];
-			next_char();
+			nextChar();
 		} else if (ch == '-') {
 			token.type = TOKEN_TYPES['SUB'];
-			next_char();
+			nextChar();
 		} else if (ch == '*') {
 			token.type = TOKEN_TYPES['MUL'];
-			next_char();
+			nextChar();
 		} else if (ch == '/') {
 			token.type = TOKEN_TYPES['DIV'];
-			next_char();
+			nextChar();
 		} else if (ch == '^') {
 			token.type = TOKEN_TYPES['EXP'];
-			next_char();
+			nextChar();
 		} else {
-			log_error(`Illegal character ${ch} at position ${pos}`);
+			logError(`Illegal character ${ch} at position ${pos}`);
 			token.type = TOKEN_TYPES["EOE"]
 		}
 
@@ -102,14 +102,14 @@ function get(token) {
 	}
 }
 
-function process_string(token) {
+function processString(token) {
 	// Read next string and return the token type found
 	token.lexeme = ''; // reset
 	start = pos // for error messages
 
-	while (is_alpha(ch)) {
+	while (isAlpha(ch)) {
 		token.lexeme = token.lexeme + ch;
-		next_char();
+		nextChar();
 	}
 
 	if (token.lexeme == 'x') {
@@ -123,25 +123,25 @@ function process_string(token) {
 	} else {
 		ch = -1;
 		token.type = TOKEN_TYPES["EOE"];
-		log_error(`Invalid function/variable name at pos ${start}`);
+		logError(`Invalid function/variable name at pos ${start}`);
 	}
 }
 
-function process_number(token) {
+function processNumber(token) {
 	// Read number from the input. Allows decimals
 	token.lexeme = '';
 	var decimal = false;
-	while ((is_numeric(ch) && ch != -1) || (ch == '.' && !decimal)) {
+	while ((isDigit(ch) && ch != -1) || (ch == '.' && !decimal)) {
 		if (ch == '.') {
 			decimal = true;
 		}
 		token.lexeme = token.lexeme + ch;
-		next_char();
+		nextChar();
 	}
 	token.type = TOKEN_TYPES["NUM"];
 }
 
-function next_char() {
+function nextChar() {
 	// Set ch equal to the next character in the expression being read, and
 	// increment the position in the string
 	if (pos < expression.length) {
@@ -153,25 +153,25 @@ function next_char() {
 	}
 }
 
-function get_token_str(type) {
+function getTokenStr(type) {
 	// Converts a token type to its string representation, for error messages
 	return TOKEN_STRINGS[type];
 }
 
 // TEST
 
-function test_scanner(str) {
+function testScanner(str) {
 	// Tokenizes str and prints each lexeme it reads on a new line
 	console.log(str);
 
-	init_scanner(str);
+	initScanner(str);
 	var token = new Token();
 
 	get(token);
 	if (token.type == TOKEN_TYPES["NUM"] || token.type == TOKEN_TYPES["FUNC"]) {
 		console.log(token.lexeme);
 	} else {
-		console.log(get_token_str(token.type));
+		console.log(getTokenStr(token.type));
 	}
 
 	while (token.type != TOKEN_TYPES["EOE"]) {
@@ -179,7 +179,7 @@ function test_scanner(str) {
 		if (token.type == TOKEN_TYPES["NUM"] || token.type == TOKEN_TYPES["FUNC"]) {
 			console.log(token.lexeme);
 		} else {
-			console.log(get_token_str(token.type));
+			console.log(getTokenStr(token.type));
 		}
 	}
 
@@ -193,14 +193,14 @@ function test_scanner(str) {
 DEBUGGING_ENABLED = true;
 indent = 0;
 
-function debug_start(production) {
+function debugStart(production) {
 	if (DEBUGGING_ENABLED) {
 		console.log(' '.repeat(indent) + production);
 		indent += 2;
 	}
 }
 
-function debug_end(production) {
+function debugEnd(production) {
 	if (DEBUGGING_ENABLED) {
 		indent -= 2;
 		console.log(' '.repeat(indent) + production);
@@ -211,83 +211,83 @@ function debug_end(production) {
 
 function expect(type) {
 	// 'Eats' token and gets the next one
-	if (next_token.type == type) {
-		get(next_token);
+	if (nextToken.type == type) {
+		get(nextToken);
 	} else {
-		log_error(`Expected ${get_token_str(type)} but found ${get_token_str(next_token.type)} at pos ${pos}`);
+		logError(`Expected ${getTokenStr(type)} but found ${getTokenStr(nextToken.type)} at pos ${pos}`);
 	}
 }
 
-function parse_function() {
+function parseFunction() {
 	// <expression> "end-of-expression"
-	debug_start("<function>");
+	debugStart("<function>");
 
-	parse_expression();
+	parseExpression();
 	expect(TOKEN_TYPES["EOE"]);
 
-	debug_end("</function>");
+	debugEnd("</function>");
 }
 
-function parse_expression() {
+function parseExpression() {
 	// ["-"] <term> {<addop> <term>}
-	debug_start("<expression>");
+	debugStart("<expression>");
 
-	if (next_token.type == TOKEN_TYPES["SUB"]) {
-		get(next_token);
+	if (nextToken.type == TOKEN_TYPES["SUB"]) {
+		get(nextToken);
 	}
 
-	parse_term();
+	parseTerm();
 
-	while (next_token.type == TOKEN_TYPES["ADD"] || next_token.type == 
+	while (nextToken.type == TOKEN_TYPES["ADD"] || nextToken.type == 
 			TOKEN_TYPES["SUB"]) {
-		get(next_token);
-		parse_term();
+		get(nextToken);
+		parseTerm();
 	}
 	
-	debug_end("</expression>");
+	debugEnd("</expression>");
 }
 
-function parse_term() {
+function parseTerm() {
 	// <factor> {<mulop> <factor>}
-	debug_start("<term>");
+	debugStart("<term>");
 
-	parse_factor();
+	parseFactor();
 
-	while (next_token.type == TOKEN_TYPES["MUL"] || next_token.type == 
-			TOKEN_TYPES["DIV"] || next_token.type == TOKEN_TYPES["EXP"]) {
-		get(next_token);
-		parse_factor();
+	while (nextToken.type == TOKEN_TYPES["MUL"] || nextToken.type == 
+			TOKEN_TYPES["DIV"] || nextToken.type == TOKEN_TYPES["EXP"]) {
+		get(nextToken);
+		parseFactor();
 	}
 
-	debug_end("</term>");
+	debugEnd("</term>");
 }
 
-function parse_factor() {
+function parseFactor() {
 	// <id> [ "(" <expr> ")" ] | <variable> | <num> | "(" <expr> ")"
-	debug_start("<factor>");
+	debugStart("<factor>");
 
-	if (next_token.type == TOKEN_TYPES["FUNC"]) {
-		get(next_token);
+	if (nextToken.type == TOKEN_TYPES["FUNC"]) {
+		get(nextToken);
 		expect(TOKEN_TYPES["LPAR"]);
-		parse_expression();
+		parseExpression();
 		expect(TOKEN_TYPES["RPAR"]);
-	} else if (next_token.type == TOKEN_TYPES["X"] || next_token.type == 
+	} else if (nextToken.type == TOKEN_TYPES["X"] || nextToken.type == 
 			TOKEN_TYPES["Y"]) {
-		get(next_token);
-	} else if (next_token.type == TOKEN_TYPES["NUM"]) {
-		get(next_token);
-	} else if (next_token.type == TOKEN_TYPES["LPAR"]) {
-		get(next_token);
-		parse_expression();
+		get(nextToken);
+	} else if (nextToken.type == TOKEN_TYPES["NUM"]) {
+		get(nextToken);
+	} else if (nextToken.type == TOKEN_TYPES["LPAR"]) {
+		get(nextToken);
+		parseExpression();
 		expect(TOKEN_TYPES["RPAR"]);
 	} else {
-		log_error(`Expected a factor but found ${get_token_str(next_token.type)} at pos ${pos}`);
+		logError(`Expected a factor but found ${getTokenStr(nextToken.type)} at pos ${pos}`);
 	}
 
-	debug_end("</factor>");
+	debugEnd("</factor>");
 }
 
-function str_to_func(expression) {
+function strToFunc(expression) {
 	// TODO store the new RegExp so you don't keep computing it
 	// Converts a string to a function after it has been parsed
 	CONSTANTS.forEach(c => {
@@ -300,32 +300,32 @@ function str_to_func(expression) {
 	return eval("(x,y) => {return " + expression + ";};");
 }
 
-function test_parser(str) {
+function testParser(str) {
 	// Make sure debugging is enabled
-	init_scanner(str);
-	get(next_token);
-	parse_expression();
+	initScanner(str);
+	get(nextToken);
+	parseFunction();
 	console.log();
 }
 
-function checkFunction(funcStr) {
+function parse(funcStr) {
 	// Initializes scanner, parses expression and returns error message or
 	// empty string if function is valid
-	init_scanner(funcStr);
-	get(next_token);
-	parse_function();
-	return error_message;
+	initScanner(funcStr);
+	get(nextToken);
+	parseFunction();
+	return errorMessage;
 }
 
 /*
 // TEST
 
-test_scanner("5()sin+5");
-test_scanner("5 + 5 * sin(100^12) - x + y*12");
+testScanner("5()sin+5");
+testScanner("5 + 5 * sin(100^12) - x + y*12");
 
-test_parser("5 + 5");
-test_parser("5 + 5 * 3 ^ 2");
-test_parser("5 + (5 + (5 + (3 * 2 * (4 * 2))))");
-test_parser("sin(cos(log(5*(5*(5+2)))))");
-test_parser("(5)");
+testParser("5 + 5");
+testParser("5 + 5 * 3 ^ 2");
+testParser("5 + (5 + (5 + (3 * 2 * (4 * 2))))");
+testParser("sin(cos(log(5*(5*(5+2)))))");
+testParser("(5)");
 */

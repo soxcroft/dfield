@@ -20,10 +20,9 @@ var xscale, xoffset, xstep;
 var yscale, yoffset, ystep;
 var minx, maxx, miny, maxy;
 
-var y_prime, x_prime;
+var yPrime, xPrime;
 
 function initCanvas() {
-
 	// set global variables
 	canvas = document.getElementById("myCanvas");
 	context = canvas.getContext('2d');
@@ -97,12 +96,8 @@ function drawArrows(variableLengthArrows) {
 	// TODO probably shouldnt tho
 
 	var funcs = getFunctions();
-	var x_prime = funcs["xPrime"];
-	var y_prime = funcs["yPrime"];
-
-	if (!variableLengthArrows) {
-		x_prime = (x,y) => { return 1; };
-	}
+	var xPrime = funcs["xPrime"];
+	var yPrime = funcs["yPrime"];
 
 	context.lineWidth = ARROW_WIDTH;
 	context.strokeStyle = "black";
@@ -113,9 +108,8 @@ function drawArrows(variableLengthArrows) {
 		var y = miny + ystep/2;
 		while (y > miny && y < maxy) {
 			// draw the arrow inside a cell
-			// TODO change from y_prime to something else
-			let dx = x_prime(x,y);
-			let dy = y_prime(x,y);
+			let dx = xPrime(x,y);
+			let dy = yPrime(x,y);
 			let curLength = Math.sqrt(dx**2 + dy**2);
 
 			if (!variableLengthArrows) {
